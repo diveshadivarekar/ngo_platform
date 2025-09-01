@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Donate a Resource{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Offer a Donation</h1>
+    <p class="subtitle">Support the network by offering goods, services, or your time.</p>
+</div>
+
+<div class="form-container">
+    <form action="{{ url_for('donate_resource') }}" method="post">
+        <div class="form-group">
+            <label for="donor_name">Your Name / Organization Name</label>
+            <input type="text" id="donor_name" name="donor_name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Contact Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="resource_name">Resource Name</label>
+            <input type="text" id="resource_name" name="resource_name" placeholder="e.g., Laptops, Volunteer Tutors, Medical Supplies" required>
+        </div>
+        <div class="form-group">
+            <label for="resource_category">Resource Category</label>
+            <select id="resource_category" name="resource_category">
+                <option value="Goods">Goods (Physical Items)</option>
+                <option value="Volunteers">Volunteers (Time/Skills)</option>
+                <option value="Services">Services (Professional Help)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <input type="text" id="quantity" name="quantity" placeholder="e.g., 10 units, 5 hours per week" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4" placeholder="Provide more details about the resource, its condition, or relevant skills."></textarea>
+        </div>
+        <button type="submit" class="submit-button">Submit Donation Offer</button>
+    </form>
+</div>
+
+{% endblock %}

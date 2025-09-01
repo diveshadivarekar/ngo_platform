@@ -1,8 +1,163 @@
-<!-- Inherit the structure from base.html -->
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Resource Network{% endblock %}
 
 {% block content %}
-    <!-- This content will replace the content block in base.html -->
-    <h1>{{ header }}</h1>
-    <p>{{ subheader }}</p>
+<div class="page-header">
+    <div>
+        <h1>Community Resource Sharing Network</h1>
+        <p class="subtitle">Connect, share, and request resources to amplify collective impact.</p>
+    </div>
+    <a href="/donate"><button id="open-donate-page" class="donate-button">Donate a Resource</button></a>
+</div>
+
+<!-- Flashed Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Filter Controls -->
+<div class="controls-container resource-filters">
+    <form class="filters-form" method="get" action="{{ url_for('resource_network') }}">
+        <div class="filter-group">
+            <label for="type">Filter by Type:</label>
+            <select name="type" id="type" onchange="this.form.submit()">
+                <option value="all" {% if selected_type == 'all' %}selected{% endif %}>All Types</option>
+                {% for type in unique_types %}
+                <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>{{ type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="sdg">Filter by SDG:</label>
+            <select name="sdg" id="sdg" onchange="this.form.submit()">
+                <option value="all" {% if selected_sdg == 'all' %}selected{% endif %}>All SDGs</option>
+                {% for sdg_num in unique_sdgs %}
+                <option value="{{ sdg_num }}" {% if selected_sdg == sdg_num %}selected{% endif %}>SDG {{ sdg_num }}: {{ sdg_titles[sdg_num|int] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <a href="{{ url_for('resource_network') }}" class="clear-filters">Clear Filters</a>
+    </form>
+</div>
+
+<!-- Urgent & Needed Resources Section -->
+<div class="resource-section">
+    <h2>Urgent & Needed Resources</h2>
+    <div class="resource-grid">
+        {% for ngo in ngos if ngo.resources_needed %}
+            {% for resource in ngo.resources_needed %}
+                <div class="resource-card needed urgency-{{ resource.urgency|lower }}">
+                    <div class="card-header">
+                        <h3>{{ resource.name }}</h3>
+                        <span class="urgency-tag">{{ resource.urgency }} Priority</span>
+                    </div>
+                    <p class="resource-provider">Needed by: <a href="{{ url_for('ngo_profile', slug=ngo.slug) }}">{{ ngo.name }}</a></p>
+                    <div class="resource-details">
+                        <span><strong>Quantity Needed:</strong> {{ resource.quantity }}</span>
+                        <div class="sdg-icons">
+                            {% for code in resource.sdg %}
+                                <img src="https://img.shields.io/badge/SDG-{{ code }}-{{ sdg_colors[code] }}.svg" alt="SDG {{code}}" title="SDG {{code}}: {{ sdg_titles[code] }}">
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button class="donate-button offer-help-btn">Offer Help</button>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-results">No specific needs match the current filters. Try clearing them to see all requests.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Available Resources Section -->
+<div class="resource-section">
+    <h2>Available Resources</h2>
+    <div class="resource-grid">
+        {% for ngo in ngos if ngo.resources_available %}
+             {% for resource in ngo.resources_available %}
+                <div class="resource-card">
+                    <h3>{{ resource.name }}</h3>
+                    <p class="resource-provider">Provided by: <a href="{{ url_for('ngo_profile', slug=ngo.slug) }}">{{ ngo.name }}</a></p>
+                    <div class="resource-details">
+                        <span><strong>Quantity:</strong> {{ resource.quantity }}</span>
+                        <div class="sdg-icons">
+                            {% for code in resource.sdg %}
+                                <img src="https://img.shields.io/badge/SDG-{{ code }}-{{ sdg_colors[code] }}.svg" alt="SDG {{code}}" title="SDG {{code}}: {{ sdg_titles[code] }}">
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <a href="{{ url_for('request_resource', ngo_id=ngo.id, resource_name=resource.name) }}" class="request-button">Request Resource</a>
+                </div>
+            {% endfor %}
+        {% else %}
+             <p class="no-results">No available resources match the current filters. Try clearing them to see all resources.</p>
+        {% endfor %}
+    </div>
+</div>
+
+
+<!-- Donation Modal -->
+<div id="donate-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Donate a Resource</h2>
+        <p>Offer your support to the network. An administrator will review your donation.</p>
+        <form action="{{ url_for('donate_resource') }}" method="post" class="modal-form">
+            <div class="form-group">
+                <label for="donor_name">Your Name / Organization</label>
+                <input type="text" id="donor_name" name="donor_name" required>
+            </div>
+            <div class="form-group">
+                <label for="donor_email">Email Address</label>
+                <input type="email" id="donor_email" name="donor_email" required>
+            </div>
+            <div class="form-group">
+                <label for="resource_name">Resource Name</label>
+                <input type="text" id="resource_name" name="resource_name" required>
+            </div>
+            <div class="form-group">
+                <label for="resource_description">Description & Quantity</label>
+                <textarea id="resource_description" name="resource_description" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="donate-button">Submit Donation</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Modal JavaScript
+    const modal = document.getElementById('donate-modal');
+    const openModalBtn = document.getElementById('open-donate-modal');
+    const closeModalBtn = document.querySelector('.close-button');
+    const offerHelpBtns = document.querySelectorAll('.offer-help-btn');
+
+    openModalBtn.onclick = function() {
+        modal.style.display = 'block';
+    }
+    
+    closeModalBtn.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    // Also open the modal when "Offer Help" is clicked
+    offerHelpBtns.forEach(btn => {
+        btn.onclick = function() {
+            modal.style.display = 'block';
+        }
+    });
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+</script>
+
 {% endblock %}
+
