@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="profile-container">
+        <a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
+        <div class="profile-header">
+            <h1>{{ ngo.name }}</h1>
+            <p class="ngo-area">{{ ngo.area }}</p>
+        </div>
+        
+        <div class="sdg-icons-profile">
+            <h4>Aligned with Sustainable Development Goals:</h4>
+            {% for code in ngo.sdg %}
+                <img src="https://img.shields.io/badge/SDG-{{ code }}-009900.svg" alt="SDG {{ code }}">
+            {% endfor %}
+        </div>
+
+        <div class="profile-body">
+            <div class="profile-section">
+                <h2>About the Organization</h2>
+                <p>{{ ngo.details }}</p>
+            </div>
+
+            <div class="profile-section">
+                <h2>Impact Metrics</h2>
+                <ul class="impact-list">
+                    {% for key, value in ngo.impact.items() %}
+                        <li>
+                            <span class="metric-key">{{ key }}</span>
+                            <span class="metric-value">{{ "{:,.0f}".format(value) if value is number else value }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            {% if ngo.goal %}
+            <div class="profile-section">
+                <h2>Goal Progress</h2>
+                 <div class="goal-tracking">
+                    <h4>Goal: {{ "{:,.0f}".format(ngo.goal.target) }} {{ ngo.goal.metric }}</h4>
+                    {% set progress = (ngo.impact[ngo.goal.metric] / ngo.goal.target) * 100 %}
+                    <div class="progress-bar">
+                        <div class="progress" style="width: {{ progress }}%;"></div>
+                    </div>
+                    <p>{{ "{:,.0f}".format(progress) }}% of goal achieved.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

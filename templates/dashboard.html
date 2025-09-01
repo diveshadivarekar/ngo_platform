@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>NGO Impact Measurement Dashboard</h1>
+        <p>From Data Chaos to Narrative Clarity: Visualizing the collective impact of NGOs.</p>
+    </div>
+
+    <!-- Filters and Export Section -->
+    <div class="controls-container">
+        <form class="filters-form" method="get" action="{{ url_for('dashboard') }}">
+            <div class="filter-group">
+                <label for="area-filter">Filter by Area:</label>
+                <select name="area" id="area-filter" onchange="this.form.submit()">
+                    <option value="all">All Areas</option>
+                    {% for area in areas %}
+                        <option value="{{ area }}" {% if area == selected_area %}selected{% endif %}>{{ area }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="year-filter">Filter by Year:</label>
+                <select name="year" id="year-filter" onchange="this.form.submit()">
+                    <option value="all">All Years</option>
+                    {% for year in years %}
+                        <option value="{{ year }}" {% if year|string == selected_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+        <a href="{{ url_for('export_csv') }}" class="export-button">Export as CSV</a>
+    </div>
+
+    <!-- Interactive Map -->
+    <div class="map-container">
+        <h3>Geographical Impact Overview</h3>
+        <div id="impact-map"></div>
+    </div>
+
+    <!-- Grid for NGO Impact Cards -->
+    <div class="ngo-grid">
+        {% for ngo in ngos %}
+        <a href="{{ url_for('ngo_profile', slug=ngo.slug) }}" class="ngo-card-link">
+            <div class="ngo-card">
+                <h2>{{ ngo.name }}</h2>
+                <p class="ngo-area">{{ ngo.area }}</p>
+                <div class="sdg-icons">
+                    {% for code in ngo.sdg %}
+                        <img src="https://img.shields.io/badge/SDG-{{ code }}-009900.svg" alt="SDG {{ code }}">
+                    {% endfor %}
+                </div>
+                <hr>
+                <div class="impact-metrics">
+                    <h3>Key Impact Metrics:</h3>
+                    <ul>
+                        {% for key, value in ngo.impact.items() %}
+                            <li><strong>{{ key }}:</strong> {{ "{:,.0f}".format(value) if value is number else value }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% if ngo.goal %}
+                    <div class="goal-tracking">
+                        <h4>Goal: {{ "{:,.0f}".format(ngo.goal.target) }} {{ ngo.goal.metric }}</h4>
+                        {% set progress = (ngo.impact[ngo.goal.metric] / ngo.goal.target) * 100 %}
+                        <div class="progress-bar">
+                            <div class="progress" style="width: {{ progress }}%;"></div>
+                        </div>
+                        <p>{{ "{:,.0f}".format(progress) }}% Achieved</p>
+                    </div>
+                {% endif %}
+            </div>
+        </a>
+        {% else %}
+            <p class="no-results">No NGOs found for the selected filters.</p>
+        {% endfor %}
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- 
+  THE FIX - PART 1:
+  Safely embed the NGO data into the page in its own script tag.
+  By setting the type to "application/json", we tell the browser not to 
+  execute it as JavaScript, preventing syntax errors.
+-->
+<script id="ngo-data" type="application/json">
+    {{ ngos | tojson | safe }}
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize the map and set its view to a central point
+        const map = L.map('impact-map').setView([19.0760, 72.8777], 10);
+
+        // Add a tile layer to the map (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // THE FIX - PART 2:
+        // Retrieve the data from our special script tag and parse it as JSON.
+        // This is a much safer way to load server-side data into JavaScript.
+        const dataElement = document.getElementById('ngo-data');
+        const ngos = JSON.parse(dataElement.textContent);
+
+        // Add markers for each NGO
+        ngos.forEach(ngo => {
+            if (ngo.location) {
+                const marker = L.marker([ngo.location.lat, ngo.location.lon]).addTo(map);
+                marker.bindPopup(`<b>${ngo.name}</b><br>${ngo.area}<br><a href="/ngo/${ngo.slug}">View Details</a>`);
+            }
+        });
+    });
+</script>
+{% endblock %}
+

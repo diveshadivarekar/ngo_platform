@@ -1,0 +1,335 @@
+/* Basic styling for the entire application */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+/* Styling for the navigation bar */
+nav {
+    background-color: #ffffff;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+nav a {
+    margin-right: 20px;
+    text-decoration: none;
+    color: #007bff;
+    font-weight: 500;
+    font-size: 16px;
+    transition: color 0.2s ease-in-out;
+}
+
+nav a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Container for the main content */
+.container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: #343a40;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+p {
+    color: #6c757d;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* --- Dashboard Specific Styles --- */
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.page-header h1 {
+    font-size: 2.8rem;
+}
+
+.page-header p {
+    font-size: 1.2rem;
+    color: #6c757d;
+    max-width: 700px;
+    margin: 0.5rem auto 0;
+}
+
+/* Filter and Export Controls */
+.controls-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 2.5rem;
+}
+
+.filters-form {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.filter-group label {
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.filter-group select {
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+}
+
+.export-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    align-self: center; /* Aligns button with the form */
+}
+
+.export-button:hover {
+    background-color: #218838;
+}
+
+/* --- THE FIX: Styles for the Map --- */
+.map-container {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#impact-map {
+    height: 450px; /* Crucial: Give the map container a height */
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* Grid for NGO Cards */
+.ngo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #6c757d;
+    padding: 2rem;
+}
+
+a.ngo-card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Individual NGO card styling */
+.ngo-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.07);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.ngo-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.ngo-card h2 {
+    font-size: 1.5rem;
+    margin-top: 0;
+    color: #007bff;
+}
+
+.ngo-card .ngo-area {
+    font-weight: 500;
+    color: #6c757d;
+    margin-top: -10px;
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+.ngo-card hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 1rem 0;
+}
+
+.impact-metrics h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    color: #343a40;
+}
+
+.impact-metrics ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.impact-metrics li {
+    margin-bottom: 0.5rem;
+}
+
+.impact-metrics li strong {
+    color: #495057;
+}
+
+/* SDG Icons */
+.sdg-icons {
+    margin-bottom: 1rem;
+}
+.sdg-icons img {
+    margin-right: 5px;
+}
+
+/* Goal Tracking Progress Bar */
+.goal-tracking {
+    margin-top: 1rem;
+}
+.goal-tracking h4 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #343a40;
+}
+.progress-bar {
+    width: 100%;
+    background-color: #e9ecef;
+    border-radius: 5px;
+    height: 15px;
+    overflow: hidden;
+}
+.progress {
+    background-color: #28a745;
+    height: 100%;
+    border-radius: 5px;
+}
+.goal-tracking p {
+    font-size: 0.85rem;
+    text-align: right;
+    margin-top: 0.25rem;
+    color: #6c757d;
+}
+
+
+/* --- NGO Profile Page Styles --- */
+
+.profile-container {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.profile-header {
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.sdg-icons-profile {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.sdg-icons-profile h4 {
+    margin-bottom: 0.5rem;
+}
+.sdg-icons-profile img {
+    margin: 0 4px;
+}
+
+.profile-section {
+    margin-bottom: 2.5rem;
+}
+
+.profile-section h2 {
+    font-size: 1.8rem;
+    color: #343a40;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.impact-list {
+    list-style: none;
+    padding: 0;
+}
+.impact-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f1f1;
+    font-size: 1.1rem;
+}
+.impact-list .metric-key {
+    font-weight: 500;
+    color: #495057;
+}
+.impact-list .metric-value {
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Suggested features section styling */
+.features-section {
+    background-color: #e9ecef;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 2rem;
+    border: 1px solid #dee2e6;
+}
+
+.features-section h2 {
+    margin-top: 0;
+    border-bottom: 2px solid #ced4da;
+    padding-bottom: 0.5rem;
+}
+
+.features-section ul {
+    padding-left: 20px;
+}
+
+.features-section li {
+    margin-bottom: 0.75rem;
+}
+
+
