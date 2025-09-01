@@ -1,106 +1,61 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, Response
+from flask import Flask, render_template, abort, request, redirect, url_for, flash, jsonify
 import io
 import csv
 from datetime import datetime
 
 app = Flask(__name__)
-# A secret key is needed for flashing messages
+# Add a secret key for flashing messages
 app.secret_key = 'supersecretkey'
 
-# SDG Titles for tooltips
-SDG_TITLES = {
-    1: 'No Poverty',
-    2: 'Zero Hunger',
-    3: 'Good Health and Well-being',
-    4: 'Quality Education',
-    5: 'Gender Equality',
-    6: 'Clean Water and Sanitation',
-    7: 'Affordable and Clean Energy',
-    8: 'Decent Work and Economic Growth',
-    9: 'Industry, Innovation and Infrastructure',
-    10: 'Reduced Inequality',
-    11: 'Sustainable Cities and Communities',
-    12: 'Responsible Consumption and Production',
-    13: 'Climate Action',
-    14: 'Life Below Water',
-    15: 'Life on Land',
-    16: 'Peace and Justice Strong Institutions',
-    17: 'Partnerships to achieve the Goal'
-}
-
-# Official SDG colors (without '#') for shields.io badges
-SDG_COLORS = {
-    1: 'E5243B',
-    2: 'DDA63A',
-    3: '4C9F38',
-    4: 'C5192D',
-    5: 'FF3A21',
-    6: '26BDE2',
-    7: 'FCC30B',
-    8: 'A21942',
-    9: 'FD6925',
-    10: 'DD1367',
-    11: 'FD9D24',
-    12: 'BF8B2E',
-    13: '3F7E44',
-    14: '0A97D9',
-    15: '56C02B',
-    16: '00689D',
-    17: '19486A'
-}
-
-@app.context_processor
-def inject_sdg_data():
-    """Injects SDG data into all templates."""
-    return dict(sdg_titles=SDG_TITLES, sdg_colors=SDG_COLORS)
-
-
-# Expanded mock data
+# --- Mock Data ---
+# Expanded data to support the new features.
 ngo_impact_data = [
     {
         'id': 1,
         'slug': 'green-future-foundation',
         'name': 'Green Future Foundation',
         'area': 'Environmental Conservation',
-        'location': {'lat': 19.0760, 'lon': 72.8777}, # Mumbai
-        'year_founded': 2022,
+        'location': {'lat': 19.0760, 'lon': 72.8777}, # Mumbai coordinates
+        'start_date': '2022-01-15',
         'impact': {
             'Trees Planted': 12500,
             'Regions Covered': 'North Mumbai, Western Suburbs',
             'CO2 Reduced (Tonnes)': 500
         },
         'details': 'Focused on reforestation and urban greening projects, the Green Future Foundation has been instrumental in combating air pollution across Mumbai. They also conduct workshops in schools to promote environmental awareness.',
-        'goal': {'metric': 'Trees Planted', 'target': 20000, 'current': 12500},
-        'sdg': [13, 15],
+        'goal': {'metric': 'Trees Planted', 'target': 20000},
+        'sdg': [13, 15], # Climate Action, Life on Land
         'resources_available': [
-            {'name': 'Gardening Tools', 'type': 'Equipment', 'quantity': '50 sets', 'sdg': [15]},
-            {'name': 'Volunteer Coordination', 'type': 'Service', 'quantity': '10 coordinators', 'sdg': [17]}
+            {'name': 'Gardening Tools', 'type': 'Goods', 'quantity': '50 sets', 'sdg': [15]},
+            {'name': 'Environmental Education Kits', 'type': 'Goods', 'quantity': '200 kits', 'sdg': [4, 13]}
         ],
         'resources_needed': [
-            {'name': 'Sapling Donations', 'type': 'Goods', 'quantity': '5000 units', 'urgency': 'High', 'sdg': [15]},
+            {'name': 'Volunteers for Tree Planting', 'type': 'Volunteers', 'quantity': '100 hours/month', 'sdg': [13, 15], 'urgency': 'High'},
+            {'name': 'Sapling Donations', 'type': 'Goods', 'quantity': '5000 saplings', 'sdg': [15], 'urgency': 'Medium'}
         ]
     },
     {
         'id': 2,
         'slug': 'educate-for-all',
         'name': 'Educate For All',
-        'area': "Children's Education",
-        'location': {'lat': 18.5204, 'lon': 73.8567}, # Pune
-        'year_founded': 2023,
+        'area': 'Children\'s Education',
+        'location': {'lat': 18.5204, 'lon': 73.8567}, # Pune coordinates
+        'start_date': '2023-06-20',
         'impact': {
             'Students Enrolled': 780,
             'Schools Supported': 15,
             'Literacy Rate Improvement (%)': 12
         },
         'details': 'Educate For All provides underprivileged children with access to quality education, school supplies, and mid-day meals. Their volunteer-led tutoring programs have shown remarkable success.',
-        'goal': {'metric': 'Students Enrolled', 'target': 1000, 'current': 780},
-        'sdg': [4, 10],
+        'goal': {'metric': 'Students Enrolled', 'target': 1000},
+        'sdg': [4], # Quality Education
         'resources_available': [
-            {'name': 'Textbooks (Primary)', 'type': 'Goods', 'quantity': '2000 units', 'sdg': [4]},
+            {'name': 'Volunteer Tutors (Math & Science)', 'type': 'Volunteers', 'quantity': '20 volunteers', 'sdg': [4]},
+            {'name': 'Used Laptops for Students', 'type': 'Goods', 'quantity': '25 units', 'sdg': [4, 10]}
         ],
         'resources_needed': [
-            {'name': 'Volunteer Tutors', 'type': 'Volunteers', 'quantity': '50 individuals', 'urgency': 'Medium', 'sdg': [4]},
-            {'name': 'Digital Tablets', 'type': 'Equipment', 'quantity': '100 units', 'urgency': 'High', 'sdg': [4, 10]}
+            {'name': 'Stationery Kits', 'type': 'Goods', 'quantity': '500 kits', 'sdg': [4], 'urgency': 'High'},
+            {'name': 'Digital Classroom Projector', 'type': 'Goods', 'quantity': '1 unit', 'sdg': [4], 'urgency': 'Low'}
         ]
     },
     {
@@ -108,22 +63,22 @@ ngo_impact_data = [
         'slug': 'healthbridge-initiative',
         'name': 'HealthBridge Initiative',
         'area': 'Community Health',
-        'location': {'lat': 19.2183, 'lon': 72.9781}, # Thane
-        'year_founded': 2022,
+        'location': {'lat': 19.2183, 'lon': 72.9781}, # Thane coordinates
+        'start_date': '2022-11-01',
         'impact': {
             'Medical Camps Held': 52,
             'Patients Treated': 21000,
             'Vaccinations Administered': 15000
         },
         'details': 'This initiative runs mobile medical camps in remote and underserved areas, providing free check-ups, essential medicines, and critical vaccinations to vulnerable populations.',
-        'goal': {'metric': 'Patients Treated', 'target': 25000, 'current': 21000},
-        'sdg': [3],
+        'goal': {'metric': 'Patients Treated', 'target': 25000},
+        'sdg': [3], # Good Health and Well-being
         'resources_available': [
-            {'name': 'Mobile Medical Van', 'type': 'Equipment', 'quantity': '1 unit', 'sdg': [3]},
-            {'name': 'Medical Professionals', 'type': 'Volunteers', 'quantity': '30 doctors/nurses', 'sdg': [3]}
+            {'name': 'Mobile Medical Van', 'type': 'Services', 'quantity': '1 van', 'sdg': [3]},
+            {'name': 'General Physicians (Volunteer)', 'type': 'Volunteers', 'quantity': '5 doctors', 'sdg': [3]}
         ],
         'resources_needed': [
-            {'name': 'Basic Medicines', 'type': 'Goods', 'quantity': '500 kits', 'urgency': 'High', 'sdg': [3]},
+            {'name': 'Basic Medical Supplies', 'type': 'Goods', 'quantity': 'Urgent resupply needed', 'sdg': [3], 'urgency': 'High'},
         ]
     },
     {
@@ -132,190 +87,227 @@ ngo_impact_data = [
         'name': 'Safe Haven Animal Rescue',
         'area': 'Animal Welfare',
         'location': {'lat': 19.0213, 'lon': 72.8562}, # South Mumbai
-        'year_founded': 2023,
+        'start_date': '2023-02-10',
         'impact': {
             'Animals Rescued': 450,
             'Successful Adoptions': 320,
-            'Awareness Programs': 25
+            'Community Awareness Programs': 25
         },
         'details': 'Dedicated to rescuing and rehabilitating stray animals, Safe Haven also runs adoption drives and awareness campaigns to promote responsible pet ownership and compassion for all animals.',
-        'goal': {'metric': 'Successful Adoptions', 'target': 400, 'current': 320},
-        'sdg': [15],
+        'goal': {'metric': 'Successful Adoptions', 'target': 400},
+        'sdg': [15], # Life on Land
          'resources_available': [],
         'resources_needed': [
-            {'name': 'Foster Homes', 'type': 'Service', 'quantity': '20 homes', 'urgency': 'Medium', 'sdg': [15]},
-            {'name': 'Animal Food', 'type': 'Goods', 'quantity': '1000 kg', 'urgency': 'High', 'sdg': [15]},
+            {'name': 'Foster Homes for Animals', 'type': 'Volunteers', 'quantity': '20 homes', 'sdg': [15], 'urgency': 'Medium'},
+            {'name': 'Animal Food (Bulk)', 'type': 'Goods', 'quantity': '500 kg', 'sdg': [15, 2], 'urgency': 'High'}
         ]
     }
 ]
 
+SDG_TITLES = {
+    1: "No Poverty", 2: "Zero Hunger", 3: "Good Health and Well-being", 4: "Quality Education",
+    5: "Gender Equality", 6: "Clean Water and Sanitation", 7: "Affordable and Clean Energy",
+    8: "Decent Work and Economic Growth", 9: "Industry, Innovation and Infrastructure",
+    10: "Reduced Inequality", 11: "Sustainable Cities and Communities",
+    12: "Responsible Consumption and Production", 13: "Climate Action", 14: "Life Below Water",
+    15: "Life on Land", 16: "Peace and Justice Strong Institutions", 17: "Partnerships to achieve the Goal"
+}
 
-def get_ngo_data():
-    """Processes the raw data to add calculated fields like progress."""
-    for ngo in ngo_impact_data:
-        # Calculate goal progress percentage
-        if ngo.get('goal') and ngo['goal'].get('target') > 0:
-            current = ngo['goal'].get('current', 0)
-            target = ngo['goal']['target']
-            ngo['progress'] = round((current / target) * 100)
-        else:
-            ngo['progress'] = 0
-    return ngo_impact_data
+SDG_COLORS = {
+    1: "E5243B", 2: "DDA63A", 3: "4C9F38", 4: "C5192D", 5: "FF3A21",
+    6: "26BDE2", 7: "FCC30B", 8: "A21942", 9: "FD6925", 10: "DD1367",
+    11: "FD9D24", 12: "BF8B2E", 13: "3F7E44", 14: "0A97D9", 15: "56C02B",
+    16: "00689D", 17: "19486A"
+}
 
-# --- Main Routes ---
+@app.context_processor
+def inject_sdg_data():
+    """Make SDG data available to all templates."""
+    return dict(sdg_titles=SDG_TITLES, sdg_colors=SDG_COLORS)
+
+# --- Routes ---
+
 @app.route('/')
-def index():
+def home():
+    """Main home page."""
     return render_template('index.html')
 
 @app.route('/dashboard')
 def dashboard():
-    ngos = get_ngo_data()
-    selected_area = request.args.get('area', 'all')
-    selected_year = request.args.get('year', 'all')
+    """Impact Measurement Dashboard page."""
+    year_filter = request.args.get('year', 'all')
+    area_filter = request.args.get('area', 'all')
 
-    # Create lists for filter dropdowns
-    unique_areas = sorted(list(set(ngo['area'] for ngo in ngos)))
-    unique_years = sorted(list(set(ngo['year_founded'] for ngo in ngos)))
+    filtered_ngos = ngo_impact_data
 
-    # Apply filters
-    if selected_area != 'all':
-        ngos = [ngo for ngo in ngos if ngo['area'] == selected_area]
-    if selected_year != 'all':
-        ngos = [ngo for ngo in ngos if ngo['year_founded'] == int(selected_year)]
+    # Filter by year
+    if year_filter != 'all':
+        filtered_ngos = [ngo for ngo in filtered_ngos if datetime.strptime(ngo['start_date'], '%Y-%m-%d').year == int(year_filter)]
+    
+    # Filter by area
+    if area_filter != 'all':
+        filtered_ngos = [ngo for ngo in filtered_ngos if ngo['area'] == area_filter]
 
-    return render_template(
-        'dashboard.html',
-        ngos=ngos,
-        unique_areas=unique_areas,
-        unique_years=unique_years,
-        selected_area=selected_area,
-        selected_year=selected_year
-    )
+    # Get unique years and areas for filter dropdowns
+    unique_years = sorted(list(set(datetime.strptime(n['start_date'], '%Y-%m-%d').year for n in ngo_impact_data)), reverse=True)
+    unique_areas = sorted(list(set(n['area'] for n in ngo_impact_data)))
+
+    return render_template('dashboard.html', 
+                           ngos=filtered_ngos, 
+                           unique_years=unique_years, 
+                           unique_areas=unique_areas,
+                           selected_year=year_filter,
+                           selected_area=area_filter)
+
 
 @app.route('/ngo/<slug>')
 def ngo_profile(slug):
-    all_ngos = get_ngo_data()
-    ngo = next((n for n in all_ngos if n['slug'] == slug), None)
-    if ngo:
-        return render_template('ngo_profile.html', ngo=ngo)
-    return "NGO not found", 404
+    """Detailed profile page for a single NGO."""
+    ngo = next((ngo for ngo in ngo_impact_data if ngo['slug'] == slug), None)
+    if ngo is None:
+        abort(404)
+    return render_template('ngo_profile.html', ngo=ngo)
 
-# --- Resource Network Routes ---
+@app.route('/export-csv')
+def export_csv():
+    """Exports the NGO impact data as a CSV file."""
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow(['NGO Name', 'Area of Impact', 'Start Date', 'Metric', 'Value'])
+    
+    # Write data
+    for ngo in ngo_impact_data:
+        for metric, value in ngo['impact'].items():
+            writer.writerow([ngo['name'], ngo['area'], ngo['start_date'], metric, value])
+            
+    output.seek(0)
+    
+    return (output.getvalue(), 200, {
+        'Content-Disposition': 'attachment; filename="ngo_impact_report.csv"',
+        'Content-Type': 'text/csv'
+    })
+
 @app.route('/resources')
 def resource_network():
-    ngos = get_ngo_data()
-    selected_type = request.args.get('type', 'all')
-    selected_sdg_str = request.args.get('sdg', 'all')
+    """Community Resource Sharing Network page."""
+    type_filter = request.args.get('type', 'all')
+    sdg_filter = request.args.get('sdg', 'all')
 
-    all_resources = []
-    for ngo in ngos:
+    # Flatten all resources for filtering and display
+    all_needed = []
+    all_available = []
+    unique_types = set()
+    unique_sdgs = set()
+
+    for ngo in ngo_impact_data:
         if ngo.get('resources_needed'):
-            all_resources.extend(ngo['resources_needed'])
+            for res in ngo['resources_needed']:
+                all_needed.append({'ngo': ngo, 'resource': res})
+                unique_types.add(res['type'])
+                for s in res['sdg']:
+                    unique_sdgs.add(s)
+
         if ngo.get('resources_available'):
-            all_resources.extend(ngo['resources_available'])
+            for res in ngo['resources_available']:
+                all_available.append({'ngo': ngo, 'resource': res})
+                unique_types.add(res['type'])
+                for s in res['sdg']:
+                    unique_sdgs.add(s)
+    
+    # Apply filters
+    if type_filter != 'all':
+        all_needed = [item for item in all_needed if item['resource']['type'] == type_filter]
+        all_available = [item for item in all_available if item['resource']['type'] == type_filter]
 
-    unique_types = sorted(list(set(r['type'] for r in all_resources)))
-    unique_sdgs = sorted(list(set(sdg for r in all_resources for sdg in r['sdg'])))
+    if sdg_filter != 'all':
+        sdg_filter_int = int(sdg_filter)
+        all_needed = [item for item in all_needed if sdg_filter_int in item['resource']['sdg']]
+        all_available = [item for item in all_available if sdg_filter_int in item['resource']['sdg']]
 
-    # Filter NGOs based on their resources
-    filtered_ngos = []
-    for ngo in ngos:
-        ngo_copy = dict(ngo)
-        
-        needed = ngo_copy.get('resources_needed', [])
-        available = ngo_copy.get('resources_available', [])
+    return render_template('resources.html', 
+                           ngos=ngo_impact_data,
+                           unique_types=sorted(list(unique_types)),
+                           unique_sdgs=sorted(list(unique_sdgs)),
+                           selected_type=type_filter,
+                           selected_sdg=sdg_filter)
 
-        if selected_type != 'all':
-            needed = [r for r in needed if r['type'] == selected_type]
-            available = [r for r in available if r['type'] == selected_type]
-
-        if selected_sdg_str != 'all':
-            selected_sdg = int(selected_sdg_str)
-            needed = [r for r in needed if selected_sdg in r['sdg']]
-            available = [r for r in available if selected_sdg in r['sdg']]
-        
-        if needed or available:
-            ngo_copy['resources_needed'] = needed
-            ngo_copy['resources_available'] = available
-            filtered_ngos.append(ngo_copy)
-
-
-    return render_template(
-        'resources.html', 
-        ngos=filtered_ngos,
-        unique_types=unique_types,
-        unique_sdgs=unique_sdgs,
-        selected_type=selected_type,
-        selected_sdg=selected_sdg_str
-    )
-
-@app.route('/request_resource/<int:ngo_id>/<resource_name>')
-def request_resource(ngo_id, resource_name):
-    all_ngos = get_ngo_data()
-    ngo = next((n for n in all_ngos if n['id'] == ngo_id), None)
-    if ngo:
-        flash(f"Your request for '{resource_name}' from '{ngo['name']}' has been logged.", 'success')
-    else:
-        flash("Could not find the specified NGO.", 'danger')
+@app.route('/request-resource')
+def request_resource():
+    """Handles a resource request."""
+    ngo_id = request.args.get('ngo_id')
+    resource_name = request.args.get('resource_name')
+    flash(f"Your request for '{resource_name}' has been sent to the providing NGO. They will contact you shortly.", 'success')
     return redirect(url_for('resource_network'))
 
 @app.route('/donate', methods=['GET', 'POST'])
 def donate_resource():
+    """Displays and handles the donation form."""
     if request.method == 'POST':
-        # This is where you handle the form submission from donate.html
-        # In a real app, this would save to a database.
+        # In a real app, you'd save this to a database
         donor_name = request.form.get('donor_name')
-        email = request.form.get('email')
-        resource_name = request.form.get('resource_name')
-        quantity = request.form.get('quantity')
-        # You can access the other form fields here as well
-        
-        flash(f"Thank you, {donor_name}! Your generous offer to donate '{resource_name} ({quantity})' has been received.", 'success')
+        flash(f"Thank you, {donor_name}! Your donation offer has been received and will be reviewed by an administrator.", 'success')
         return redirect(url_for('resource_network'))
     
-    # This handles the GET request, showing the form page
+    # For GET request, render the separate donation page
     return render_template('donate.html')
 
+@app.route('/data-collection', methods=['GET', 'POST'])
+def data_collection():
+    """Displays and handles the field data collection form."""
+    if request.method == 'POST':
+        ngo_id = int(request.form.get('ngo_id'))
+        
+        # Check if we are updating an existing metric or adding a new one
+        metric_choice = request.form.get('metric_choice')
+        if metric_choice == 'new':
+            metric_name = request.form.get('new_metric_name')
+        else:
+            metric_name = metric_choice
 
-# --- Data Export ---
-@app.route('/export-csv')
-def export_csv():
-    ngos = get_ngo_data()
-    # Prepare data for CSV
-    output = io.StringIO()
-    writer = csv.writer(output)
-    
-    # Header
-    writer.writerow(['NGO Name', 'Area of Impact', 'Year Founded', 'Goal Metric', 'Goal Target', 'Current Progress', 'Progress (%)', 'Aligned SDGs'])
-    
-    # Rows
-    for ngo in ngos:
-        sdg_str = ', '.join([str(s) for s in ngo.get('sdg', [])])
-        writer.writerow([
-            ngo['name'],
-            ngo['area'],
-            ngo['year_founded'],
-            ngo['goal']['metric'],
-            ngo['goal']['target'],
-            ngo['goal']['current'],
-            ngo['progress'],
-            sdg_str
-        ])
-    
-    output.seek(0)
-    
-    return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment;filename=ngo_impact_report.csv"}
-    )
+        metric_value = request.form.get('metric_value')
+        
+        ngo_to_update = next((ngo for ngo in ngo_impact_data if ngo['id'] == ngo_id), None)
+        
+        if ngo_to_update and metric_name:
+            current_value = ngo_to_update['impact'].get(metric_name, 0)
+            try:
+                new_value = float(metric_value)
+                if new_value.is_integer():
+                    new_value = int(new_value)
+                
+                if isinstance(current_value, (int, float)):
+                    ngo_to_update['impact'][metric_name] = current_value + new_value
+                else:
+                    ngo_to_update['impact'][metric_name] = new_value
+                
+                flash(f"Data for '{metric_name}' submitted successfully for {ngo_to_update['name']}!", 'success')
+            except (ValueError, TypeError):
+                flash(f"Invalid value '{metric_value}'. Please enter a number.", 'error')
+        else:
+            flash("Could not submit data. Please ensure all fields are correct.", 'error')
+        
+        return redirect(url_for('data_collection'))
+
+    return render_template('data_collection.html', ngos=ngo_impact_data)
+
+@app.route('/api/ngo-metrics/<int:ngo_id>')
+def get_ngo_metrics(ngo_id):
+    """API endpoint to get existing metrics for a given NGO."""
+    ngo = next((n for n in ngo_impact_data if n['id'] == ngo_id), None)
+    if ngo:
+        # Return only metrics that have a numeric value
+        numeric_metrics = {k: v for k, v in ngo['impact'].items() if isinstance(v, (int, float))}
+        return jsonify(list(numeric_metrics.keys()))
+    return jsonify([])
 
 
-# --- Error Handling ---
+# --- Error Handler ---
 @app.errorhandler(404)
 def page_not_found(e):
+    """Custom 404 error page."""
     return render_template('404.html'), 404
-
 
 if __name__ == '__main__':
     app.run(debug=True)

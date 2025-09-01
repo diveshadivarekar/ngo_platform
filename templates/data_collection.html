@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Field Data Collection{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Field Data Collection Form</h1>
+    <p class="subtitle">Submit new impact data from field operations.</p>
+</div>
+
+<!-- Flashed Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="form-container">
+    <form action="{{ url_for('data_collection') }}" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="ngo_id">1. Select NGO</label>
+            <select id="ngo_id" name="ngo_id" required>
+                <option value="" disabled selected>-- Choose an Organization --</option>
+                {% for ngo in ngos %}
+                <option value="{{ ngo.id }}">{{ ngo.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="metric_choice">2. Select Metric to Update or Create New</label>
+            <select id="metric_choice" name="metric_choice" required>
+                <option value="" disabled selected>-- First select an NGO --</option>
+                <!-- Options will be populated by JavaScript -->
+                 <option value="new">-- Add a New Metric --</option>
+            </select>
+        </div>
+        
+        <div class="form-group" id="new_metric_group" style="display:none;">
+            <label for="new_metric_name">New Metric Name</label>
+            <input type="text" id="new_metric_name" name="new_metric_name" placeholder="e.g., Volunteers Mobilized">
+        </div>
+
+        <div class="form-group">
+            <label for="metric_value">3. Value (Numeric)</label>
+            <p class="form-hint">Enter the new value to add to the existing total.</p>
+            <input type="number" step="any" id="metric_value" name="metric_value" placeholder="e.g., 50" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="agent_id">4. Field Agent ID</label>
+            <input type="text" id="agent_id" name="agent_id" placeholder="Enter your agent ID" required>
+        </div>
+        
+        <hr class="form-divider">
+
+        <div class="form-group">
+            <label for="collection_date">5. Date of Collection</label>
+            <input type="date" id="collection_date" name="collection_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="location">6. Location of Data Collection</label>
+            <div class="location-input">
+                <input type="text" id="location" name="location" placeholder="Latitude, Longitude" readonly>
+                <button type="button" class="inline-button" id="getLocationBtn">Get Current Location</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="photo_evidence">7. Upload Photo Evidence (Optional)</label>
+            <input type="file" id="photo_evidence" name="photo_evidence" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label for="notes">8. Notes (Optional)</label>
+            <textarea id="notes" name="notes" rows="4" placeholder="Add any relevant details about this data entry."></textarea>
+        </div>
+        <button type="submit" class="submit-button">Submit Data</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ngoSelect = document.getElementById('ngo_id');
+    const metricSelect = document.getElementById('metric_choice');
+    const newMetricGroup = document.getElementById('new_metric_group');
+    const newMetricInput = document.getElementById('new_metric_name');
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const locationInput = document.getElementById('location');
+
+    ngoSelect.addEventListener('change', function() {
+        const ngoId = this.value;
+        // Clear previous options
+        metricSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+        
+        if (ngoId) {
+            fetch(`/api/ngo-metrics/${ngoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    metricSelect.innerHTML = '<option value="" disabled selected>-- Select a metric --</option>';
+                    data.forEach(metric => {
+                        const option = document.createElement('option');
+                        option.value = metric;
+                        option.textContent = metric;
+                        metricSelect.appendChild(option);
+                    });
+                    metricSelect.innerHTML += '<option value="new">-- Add a New Metric --</option>';
+                });
+        }
+    });
+
+    metricSelect.addEventListener('change', function() {
+        if (this.value === 'new') {
+            newMetricGroup.style.display = 'block';
+            newMetricInput.required = true;
+        } else {
+            newMetricGroup.style.display = 'none';
+            newMetricInput.required = false;
+        }
+    });
+
+    getLocationBtn.addEventListener('click', function() {
+        if (navigator.geolocation) {
+            locationInput.value = "Fetching location...";
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude.toFixed(5);
+                const lon = position.coords.longitude.toFixed(5);
+                locationInput.value = `${lat}, ${lon}`;
+            }, function() {
+                locationInput.value = "Unable to retrieve location.";
+            });
+        } else {
+            locationInput.value = "Geolocation is not supported by this browser.";
+        }
+    });
+});
+</script>
+{% endblock %}
+

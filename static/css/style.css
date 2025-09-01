@@ -657,8 +657,18 @@ a.ngo-card-link {
     margin-bottom: 0.5rem;
 }
 
+.form-container .form-hint {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: -0.25rem;
+    margin-bottom: 0.5rem;
+}
+
 .form-container input[type="text"],
 .form-container input[type="email"],
+.form-container input[type="number"],
+.form-container input[type="date"],
+.form-container input[type="file"],
 .form-container select,
 .form-container textarea {
     width: 100%;
@@ -683,6 +693,37 @@ a.ngo-card-link {
     min-height: 100px;
 }
 
+.form-container .location-input {
+    display: flex;
+    gap: 10px;
+}
+
+.form-container .location-input input {
+    flex-grow: 1;
+}
+
+.form-container .inline-button {
+    padding: 0 15px;
+    border: 1px solid #007bff;
+    background-color: #fff;
+    color: #007bff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-container .inline-button:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.form-divider {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 2rem 0;
+}
+
+
 .submit-button {
     display: block;
     width: 100%;
@@ -690,7 +731,7 @@ a.ngo-card-link {
     font-size: 1.1rem;
     font-weight: bold;
     color: #fff;
-    background-color: #007bff;
+    background-color: #28a745; /* Green for success */
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -698,6 +739,5 @@ a.ngo-card-link {
 }
 
 .submit-button:hover {
-    background-color: #0056b3;
+    background-color: #218838;
 }
-
