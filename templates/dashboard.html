@@ -1,116 +1,112 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Impact Dashboard{% endblock %}
 
 {% block content %}
-    <div class="page-header">
-        <h1>NGO Impact Measurement Dashboard</h1>
-        <p>From Data Chaos to Narrative Clarity: Visualizing the collective impact of NGOs.</p>
-    </div>
+<div class="page-header">
+    <h1>NGO Impact Dashboard</h1>
+    <p class="subtitle">From Data Chaos to Narrative Clarity. Visualize, filter, and export the impact of NGOs.</p>
+</div>
 
-    <!-- Filters and Export Section -->
+<!-- Map and Controls -->
+<div class="dashboard-main">
+    <div class="map-container">
+        <h2>Geographical Overview</h2>
+        <div id="impact-map"></div>
+    </div>
     <div class="controls-container">
+        <h2>Filter & Export</h2>
         <form class="filters-form" method="get" action="{{ url_for('dashboard') }}">
             <div class="filter-group">
-                <label for="area-filter">Filter by Area:</label>
-                <select name="area" id="area-filter" onchange="this.form.submit()">
-                    <option value="all">All Areas</option>
-                    {% for area in areas %}
-                        <option value="{{ area }}" {% if area == selected_area %}selected{% endif %}>{{ area }}</option>
+                <label for="area">Filter by Area:</label>
+                <select name="area" id="area" onchange="this.form.submit()">
+                    <option value="all" {% if selected_area == 'all' %}selected{% endif %}>All Areas</option>
+                    {% for area in unique_areas %}
+                    <option value="{{ area }}" {% if selected_area == area %}selected{% endif %}>{{ area }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="filter-group">
-                <label for="year-filter">Filter by Year:</label>
-                <select name="year" id="year-filter" onchange="this.form.submit()">
-                    <option value="all">All Years</option>
-                    {% for year in years %}
-                        <option value="{{ year }}" {% if year|string == selected_year %}selected{% endif %}>{{ year }}</option>
+                <label for="year">Filter by Year Founded:</label>
+                <select name="year" id="year" onchange="this.form.submit()">
+                    <option value="all" {% if selected_year == 'all' %}selected{% endif %}>All Years</option>
+                    {% for year in unique_years %}
+                    <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
                     {% endfor %}
                 </select>
             </div>
         </form>
         <a href="{{ url_for('export_csv') }}" class="export-button">Export as CSV</a>
     </div>
+</div>
 
-    <!-- Interactive Map -->
-    <div class="map-container">
-        <h3>Geographical Impact Overview</h3>
-        <div id="impact-map"></div>
-    </div>
-
-    <!-- Grid for NGO Impact Cards -->
-    <div class="ngo-grid">
-        {% for ngo in ngos %}
-        <a href="{{ url_for('ngo_profile', slug=ngo.slug) }}" class="ngo-card-link">
-            <div class="ngo-card">
-                <h2>{{ ngo.name }}</h2>
-                <p class="ngo-area">{{ ngo.area }}</p>
-                <div class="sdg-icons">
-                    {% for code in ngo.sdg %}
-                        <img src="https://img.shields.io/badge/SDG-{{ code }}-009900.svg" alt="SDG {{ code }}">
-                    {% endfor %}
+<!-- NGO Grid -->
+<div class="ngo-grid">
+    {% for ngo in ngos %}
+    <div class="ngo-card">
+        <div class="ngo-card-header">
+            <h3>{{ ngo.name }}</h3>
+            <span class="ngo-area">{{ ngo.area }}</span>
+        </div>
+        <div class="ngo-card-body">
+            <p><strong>Founded:</strong> {{ ngo.year_founded }}</p>
+            <div class="progress-bar-container">
+                <span>Goal: {{ ngo.goal.metric }}</span>
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" style="width: {{ ngo.progress }}%;">{{ ngo.progress }}%</div>
                 </div>
-                <hr>
-                <div class="impact-metrics">
-                    <h3>Key Impact Metrics:</h3>
-                    <ul>
-                        {% for key, value in ngo.impact.items() %}
-                            <li><strong>{{ key }}:</strong> {{ "{:,.0f}".format(value) if value is number else value }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% if ngo.goal %}
-                    <div class="goal-tracking">
-                        <h4>Goal: {{ "{:,.0f}".format(ngo.goal.target) }} {{ ngo.goal.metric }}</h4>
-                        {% set progress = (ngo.impact[ngo.goal.metric] / ngo.goal.target) * 100 %}
-                        <div class="progress-bar">
-                            <div class="progress" style="width: {{ progress }}%;"></div>
-                        </div>
-                        <p>{{ "{:,.0f}".format(progress) }}% Achieved</p>
-                    </div>
-                {% endif %}
             </div>
-        </a>
-        {% else %}
-            <p class="no-results">No NGOs found for the selected filters.</p>
-        {% endfor %}
+        </div>
+        <div class="ngo-card-footer">
+            <div class="sdg-icons">
+                {% for code in ngo.sdg %}
+                    <img src="https://img.shields.io/badge/SDG-{{ code }}-{{ sdg_colors[code] }}.svg" alt="SDG {{code}}" title="SDG {{code}}: {{ sdg_titles[code] }}">
+                {% endfor %}
+            </div>
+            <a href="{{ url_for('ngo_profile', slug=ngo.slug) }}" class="details-link">View Details &rarr;</a>
+        </div>
     </div>
+    {% else %}
+    <p>No NGOs match the current filters.</p>
+    {% endfor %}
+</div>
 
-{% endblock %}
-
-{% block scripts %}
-<!-- 
-  THE FIX - PART 1:
-  Safely embed the NGO data into the page in its own script tag.
-  By setting the type to "application/json", we tell the browser not to 
-  execute it as JavaScript, preventing syntax errors.
--->
+<!-- Hidden data for JavaScript -->
 <script id="ngo-data" type="application/json">
-    {{ ngos | tojson | safe }}
+    {{ ngos | tojson }}
 </script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Initialize the map and set its view to a central point
-        const map = L.map('impact-map').setView([19.0760, 72.8777], 10);
+        const dataEl = document.getElementById('ngo-data');
+        if (dataEl && dataEl.textContent) {
+            try {
+                const ngos = JSON.parse(dataEl.textContent);
+                if (ngos.length > 0) {
+                    const map = L.map('impact-map').setView([ngos[0].location.lat, ngos[0].location.lon], 7);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
 
-        // Add a tile layer to the map (OpenStreetMap)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+                    ngos.forEach(ngo => {
+                        if (ngo.location && ngo.location.lat && ngo.location.lon) {
+                            L.marker([ngo.location.lat, ngo.location.lon]).addTo(map)
+                                .bindPopup(`<b>${ngo.name}</b><br>${ngo.area}<br><a href="/ngo/${ngo.slug}">View Details</a>`);
+                        }
+                    });
+                } else {
+                     document.getElementById('impact-map').innerHTML = '<p style="padding: 20px; text-align: center;">No geographical data to display for current filters.</p>';
+                }
 
-        // THE FIX - PART 2:
-        // Retrieve the data from our special script tag and parse it as JSON.
-        // This is a much safer way to load server-side data into JavaScript.
-        const dataElement = document.getElementById('ngo-data');
-        const ngos = JSON.parse(dataElement.textContent);
-
-        // Add markers for each NGO
-        ngos.forEach(ngo => {
-            if (ngo.location) {
-                const marker = L.marker([ngo.location.lat, ngo.location.lon]).addTo(map);
-                marker.bindPopup(`<b>${ngo.name}</b><br>${ngo.area}<br><a href="/ngo/${ngo.slug}">View Details</a>`);
+            } catch (e) {
+                console.error("Error parsing NGO JSON data:", e);
+                document.getElementById('impact-map').innerHTML = '<p style="padding: 20px; text-align: center; color: red;">Error loading map data.</p>';
             }
-        });
+        } else {
+             console.log("No NGO data element found for map.");
+             document.getElementById('impact-map').innerHTML = '<p style="padding: 20px; text-align: center;">No map data available.</p>';
+        }
     });
 </script>
 {% endblock %}
