@@ -4,20 +4,30 @@
 
 {% block content %}
 <div class="page-header">
-    <div>
+    <div class="header-content">
         <h1>Community Resource Sharing Network</h1>
         <p class="subtitle">Connect, share, and request resources to amplify collective impact.</p>
     </div>
-    <!-- This button now opens the modal -->
-    <a href="/donate"><button class="donate-button">Donate a Resource</button></a>
+    <div class="button-group">
+        <a href="/donate" class="donate-button">
+            <span>Donate a Resource</span>
+            <div class="btn-icon">💝</div>
+        </a>
+        <a href="/request-resources" class="emergency-button">
+            <span>Request a Resource</span>
+            <div class="btn-icon">⚡</div>
+        </a>
+    </div>
 </div>
 
 <!-- Flashed Messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
   {% endif %}
 {% endwith %}
 
@@ -66,7 +76,7 @@
                             {% endfor %}
                         </div>
                     </div>
-                    <button class="donate-button offer-help-btn">Offer Help</button>
+                    <button class="offer-help-btn">Offer Help</button>
                 </div>
             {% endfor %}
         {% else %}
@@ -107,7 +117,6 @@
         <span class="close-button">&times;</span>
         <h2>Donate a Resource</h2>
         <p>Offer your support to the network. An administrator will review your donation.</p>
-        <!-- The form now submits to the original donate_resource route -->
         <form action="{{ url_for('donate_resource') }}" method="post" class="modal-form">
             <div class="form-group">
                 <label for="donor_name">Your Name / Organization</label>
@@ -130,19 +139,483 @@
     </div>
 </div>
 
+<style>
+/* Page Header Layout */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.header-content h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Button Group */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Donate Button */
+.donate-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.donate-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.donate-button:active {
+    transform: translateY(0);
+}
+
+/* Emergency Request Button */
+.emergency-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Pulse animation for urgency */
+.emergency-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transform: translate(-50%, -50%) scale(0);
+    animation: emergencyPulse 3s ease-out infinite;
+    z-index: 0;
+}
+
+@keyframes emergencyPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0;
+    }
+}
+
+.emergency-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.emergency-button:active {
+    transform: translateY(0);
+}
+
+.emergency-button span,
+.donate-button span {
+    position: relative;
+    z-index: 1;
+}
+
+.btn-icon {
+    position: relative;
+    z-index: 1;
+    font-size: 1.1rem;
+}
+
+/* Flash Messages */
+.flash-messages {
+    margin-bottom: 1.5rem;
+}
+
+.alert {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-left-color: #10b981;
+}
+
+.alert-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-left-color: #ef4444;
+}
+
+/* Filters Section */
+.controls-container {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.filters-form {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.9rem;
+}
+
+.filter-group select {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    min-width: 200px;
+}
+
+.clear-filters {
+    color: #dc2626;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border: 1px solid #dc2626;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    align-self: flex-end;
+}
+
+.clear-filters:hover {
+    background: #dc2626;
+    color: white;
+}
+
+/* Resource Sections */
+.resource-section {
+    margin-bottom: 3rem;
+}
+
+.resource-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.resource-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.resource-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.card-header h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.urgency-tag {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.urgency-high .urgency-tag {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.urgency-medium .urgency-tag {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.urgency-low .urgency-tag {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.resource-provider a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.resource-provider a:hover {
+    text-decoration: underline;
+}
+
+.resource-details {
+    margin: 1rem 0;
+    padding: 1rem 0;
+    border-top: 1px solid #f3f4f6;
+}
+
+.sdg-icons {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+}
+
+.sdg-icons img {
+    height: 20px;
+}
+
+/* Action Buttons */
+.offer-help-btn,
+.request-button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 1rem;
+}
+
+.offer-help-btn {
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+}
+
+.offer-help-btn:hover {
+    background: linear-gradient(135deg, #10b981, #059669);
+    transform: translateY(-1px);
+}
+
+.request-button {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+}
+
+.request-button:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    transform: translateY(-1px);
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+    padding: 2rem;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.close-button {
+    color: #9ca3af;
+    float: right;
+    font-size: 2rem;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close-button:hover {
+    color: #374151;
+}
+
+.modal-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.modal-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.modal-form input,
+.modal-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.modal-form input:focus,
+.modal-form textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.5rem;
+    }
+    
+    .header-content {
+        text-align: center;
+    }
+    
+    .header-content h1 {
+        font-size: 1.75rem;
+    }
+    
+    .button-group {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .filters-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .filter-group select {
+        min-width: auto;
+    }
+    
+    .resource-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .clear-filters {
+        align-self: stretch;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .button-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .donate-button,
+    .emergency-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+
 <script>
     // Modal JavaScript
     const modal = document.getElementById('donate-modal');
-    // Corrected ID to match the button
-    // const openModalBtn = document.getElementById('open-donate-modal');
     const closeModalBtn = document.querySelector('.close-button');
     const offerHelpBtns = document.querySelectorAll('.offer-help-btn');
-
-    // if (openModalBtn) {
-    //     openModalBtn.onclick = function() {
-    //         modal.style.display = 'block';
-    //     }
-    // }
     
     if (closeModalBtn) {
         closeModalBtn.onclick = function() {
@@ -150,7 +623,7 @@
         }
     }
 
-    // Also open the modal when "Offer Help" is clicked
+    // Open modal when "Offer Help" is clicked
     offerHelpBtns.forEach(btn => {
         btn.onclick = function() {
             modal.style.display = 'block';
@@ -164,4 +637,3 @@
     }
 </script>
 {% endblock %}
-
