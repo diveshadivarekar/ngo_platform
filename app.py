@@ -8,7 +8,35 @@ app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
 # --- Mock Data ---
-# Expanded data to support the new features.
+
+announcements_data = [
+    {
+        'id': 1,
+        'title': 'Urgent Need for Blankets in Pune Shelters',
+        'content': 'With the recent drop in temperature, our partner shelters in the Pune area are in urgent need of blankets and warm clothing. Donations can be dropped off at any HealthBridge Initiative camp.',
+        'author': 'HealthBridge Initiative',
+        'category': 'Urgent',
+        'timestamp': '2023-11-15 09:30:00'
+    },
+    {
+        'id': 2,
+        'title': 'Volunteer Drive for Weekend Tree Planting Event',
+        'content': 'Join Green Future Foundation this Saturday for a massive tree planting event in the Aarey Colony area. All tools will be provided. A great opportunity to make a tangible impact!',
+        'author': 'Green Future Foundation',
+        'category': 'Event',
+        'timestamp': '2023-11-14 14:00:00'
+    },
+    {
+        'id': 3,
+        'title': 'New Educational Kits Available for Partner NGOs',
+        'content': 'Educate For All has developed a new set of science and math educational kits for primary school students. Partner NGOs working in education can request these kits via our resource network page.',
+        'author': 'Educate For All',
+        'category': 'Information',
+        'timestamp': '2023-11-12 11:00:00'
+    }
+]
+
+
 ngo_impact_data = [
     {
         'id': 1,
@@ -301,6 +329,26 @@ def get_ngo_metrics(ngo_id):
         numeric_metrics = {k: v for k, v in ngo['impact'].items() if isinstance(v, (int, float))}
         return jsonify(list(numeric_metrics.keys()))
     return jsonify([])
+
+@app.route('/announcements', methods=['GET', 'POST'])
+def announcements():
+    """Displays and handles announcements."""
+    if request.method == 'POST':
+        new_announcement = {
+            'id': len(announcements_data) + 1,
+            'title': request.form.get('title'),
+            'content': request.form.get('content'),
+            'author': request.form.get('author'),
+            'category': request.form.get('category'),
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        announcements_data.insert(0, new_announcement) # Add to the top of the list
+        flash('Your announcement has been posted!', 'success')
+        return redirect(url_for('announcements'))
+
+    # Sort announcements by timestamp for display
+    sorted_announcements = sorted(announcements_data, key=lambda x: x['timestamp'], reverse=True)
+    return render_template('announcements.html', announcements=sorted_announcements, ngos=ngo_impact_data)
 
 
 # --- Error Handler ---

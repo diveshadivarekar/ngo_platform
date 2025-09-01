@@ -741,3 +741,87 @@ a.ngo-card-link {
 .submit-button:hover {
     background-color: #218838;
 }
+
+/* --- Announcements Page --- */
+.announcement-form {
+    margin-bottom: 3rem;
+}
+
+.announcements-feed {
+    max-width: 900px;
+    margin: 2rem auto;
+}
+
+.announcements-feed h2 {
+    font-size: 1.8rem;
+    color: #343a40;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.announcement-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-left: 5px solid #007bff; /* Default Information color */
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    transition: box-shadow 0.3s ease;
+}
+
+.announcement-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Category-specific border colors */
+.announcement-card.category-urgent {
+    border-left-color: #dc3545; /* Red */
+}
+.announcement-card.category-event {
+    border-left-color: #ffc107; /* Yellow */
+}
+
+.announcement-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.announcement-card h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #343a40;
+}
+
+.announcement-card .category-tag {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #6c757d; /* Default */
+}
+
+.category-urgent .category-tag { background-color: #dc3545; }
+.category-event .category-tag { background-color: #ffc107; color: #212529; }
+.category-information .category-tag { background-color: #007bff; }
+
+
+.announcement-card .card-body {
+    padding: 1.5rem;
+    line-height: 1.6;
+    color: #495057;
+}
+
+.announcement-card .card-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    font-size: 0.85rem;
+    color: #6c757d;
+    border-top: 1px solid #f0f0f0;
+}

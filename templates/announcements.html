@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Announcements{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Announcements</h1>
+    <p class="subtitle">Stay updated with the latest news, events, and urgent needs from the network.</p>
+</div>
+
+<!-- Flashed Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- New Announcement Form -->
+<!-- <div class="form-container announcement-form">
+    <h2>Post a New Announcement</h2>
+    <form action="{{ url_for('announcements') }}" method="post">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" required placeholder="A clear and concise title">
+        </div>
+        <div class="form-group">
+            <label for="content">Content</label>
+            <textarea id="content" name="content" rows="5" required placeholder="Provide all the necessary details here."></textarea>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="author">Author (Your NGO)</label>
+                <select id="author" name="author" required>
+                    <option value="" disabled selected>-- Select your NGO --</option>
+                    {% for ngo in ngos %}
+                        <option value="{{ ngo.name }}">{{ ngo.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="Information">Information</option>
+                    <option value="Event">Event</option>
+                    <option value="Urgent">Urgent</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="submit-button">Post Announcement</button>
+    </form>
+</div> -->
+
+<!-- Announcements Feed -->
+<div class="announcements-feed">
+    <h2>Latest Updates</h2>
+    {% for announcement in announcements %}
+        <div class="announcement-card category-{{ announcement.category|lower }}">
+            <div class="card-header">
+                <h3>{{ announcement.title }}</h3>
+                <span class="category-tag">{{ announcement.category }}</span>
+            </div>
+            <div class="card-body">
+                <p>{{ announcement.content }}</p>
+            </div>
+            <div class="card-footer">
+                <span>Posted by: <strong>{{ announcement.author }}</strong></span>
+                <span>{{ announcement.timestamp }}</span>
+            </div>
+        </div>
+    {% else %}
+        <p class="no-results">There are no announcements yet. Be the first to post one!</p>
+    {% endfor %}
+</div>
+
+{% endblock %}
