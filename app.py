@@ -337,6 +337,14 @@ def get_ngo_metrics(ngo_id):
         return jsonify(list(numeric_metrics.keys()))
     return jsonify([])
 
+@app.route('/request-resources', methods=['GET', 'POST'])
+def requestResource():
+    if request.method == 'POST':
+        flash('Request raised!', 'success')
+        
+        return redirect(url_for('resource_network')) 
+    return render_template('request.html')
+
 @app.route('/announcements', methods=['GET', 'POST'])
 def announcements():
     """Displays and handles announcements."""
