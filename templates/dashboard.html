@@ -40,36 +40,45 @@
     </div>
 </div>
 
-<!-- NGO Grid -->
+
+<!-- NGO Cards Grid -->
 <div class="ngo-grid">
     {% for ngo in ngos %}
     <div class="ngo-card">
-        <div class="ngo-card-header">
-            <h3>{{ ngo.name }}</h3>
+        <div class="card-header">
+            <h3><a href="{{ url_for('ngo_profile', slug=ngo.slug) }}">{{ ngo.name }}</a></h3>
             <span class="ngo-area">{{ ngo.area }}</span>
         </div>
-        <div class="ngo-card-body">
-            <p><strong>Founded:</strong> {{ ngo.year_founded }}</p>
-            <div class="progress-bar-container">
-                <span>Goal: {{ ngo.goal.metric }}</span>
-                <div class="progress-bar">
-                    <div class="progress-bar-fill" style="width: {{ ngo.progress }}%;">{{ ngo.progress }}%</div>
+        <div class="card-body">
+            {% if ngo.goal and ngo.goal.target > 0 %}
+                {% set progress = ((ngo.impact[ngo.goal.metric] / ngo.goal.target * 100) | round | int) %}
+                <div class="goal-progress">
+                    <p class="progress-label"><strong>Goal:</strong> {{ ngo.goal.target }} {{ ngo.goal.metric }}</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar">
+                        <div class="progress" style="width: {{ progress }}%;"></div>
+                    </div>
+                    </div>
                 </div>
-            </div>
+                <br>
+            {% else %}
+                 <p class="no-goal">No specific goal set.</p>
+            {% endif %}
         </div>
-        <div class="ngo-card-footer">
+        <div class="card-footer">
             <div class="sdg-icons">
-                {% for code in ngo.sdg %}
+                 {% for code in ngo.sdg %}
                     <img src="https://img.shields.io/badge/SDG-{{ code }}-{{ sdg_colors[code] }}.svg" alt="SDG {{code}}" title="SDG {{code}}: {{ sdg_titles[code] }}">
                 {% endfor %}
             </div>
-            <a href="{{ url_for('ngo_profile', slug=ngo.slug) }}" class="details-link">View Details &rarr;</a>
+            <span class="founded-year">Founded: {{ ngo.start_date.split('-')[0] }}</span>
         </div>
     </div>
     {% else %}
-    <p>No NGOs match the current filters.</p>
+    <p class="no-results">No NGOs match the current filters. Try clearing them to see all organizations.</p>
     {% endfor %}
 </div>
+
 
 <!-- Hidden data for JavaScript -->
 <script id="ngo-data" type="application/json">
