@@ -2,13 +2,11 @@ from flask import Flask, render_template, abort, request, redirect, url_for, fla
 import io
 import csv
 from datetime import datetime
-import random # Import the random module
+import random 
 
 app = Flask(__name__)
-# Add a secret key for flashing messages
 app.secret_key = 'supersecretkey'
 
-# --- Mock Data ---
 
 announcements_data = [
     {
@@ -159,7 +157,6 @@ def inject_sdg_data():
 @app.route('/')
 def home():
     """Main home page."""
-    # Select 3 random NGOs to feature on the home page
     if len(ngo_impact_data) > 3:
         featured_ngos = random.sample(ngo_impact_data, 3)
     else:
@@ -175,15 +172,12 @@ def dashboard():
 
     filtered_ngos = ngo_impact_data
 
-    # Filter by year
     if year_filter != 'all':
         filtered_ngos = [ngo for ngo in filtered_ngos if datetime.strptime(ngo['start_date'], '%Y-%m-%d').year == int(year_filter)]
     
-    # Filter by area
     if area_filter != 'all':
         filtered_ngos = [ngo for ngo in filtered_ngos if ngo['area'] == area_filter]
 
-    # Get unique years and areas for filter dropdowns
     unique_years = sorted(list(set(datetime.strptime(n['start_date'], '%Y-%m-%d').year for n in ngo_impact_data)), reverse=True)
     unique_areas = sorted(list(set(n['area'] for n in ngo_impact_data)))
 
@@ -212,7 +206,6 @@ def export_csv():
     # Write header
     writer.writerow(['NGO Name', 'Area of Impact', 'Start Date', 'Metric', 'Value'])
     
-    # Write data
     for ngo in ngo_impact_data:
         for metric, value in ngo['impact'].items():
             writer.writerow([ngo['name'], ngo['area'], ngo['start_date'], metric, value])
@@ -230,7 +223,6 @@ def resource_network():
     type_filter = request.args.get('type', 'all')
     sdg_filter = request.args.get('sdg', 'all')
 
-    # Flatten all resources for filtering and display
     all_needed = []
     all_available = []
     unique_types = set()
@@ -251,7 +243,6 @@ def resource_network():
                 for s in res['sdg']:
                     unique_sdgs.add(s)
     
-    # Apply filters
     if type_filter != 'all':
         all_needed = [item for item in all_needed if item['resource']['type'] == type_filter]
         all_available = [item for item in all_available if item['resource']['type'] == type_filter]
@@ -280,12 +271,10 @@ def request_resource():
 def donate_resource():
     """Displays and handles the donation form."""
     if request.method == 'POST':
-        # In a real app, you'd save this to a database
         donor_name = request.form.get('donor_name')
         flash(f"Thank you, {donor_name}! Your donation offer has been received and will be reviewed by an administrator.", 'success')
         return redirect(url_for('resource_network'))
     
-    # For GET request, render the separate donation page
     return render_template('donate.html')
 
 @app.route('/data-collection', methods=['GET', 'POST'])
@@ -294,7 +283,6 @@ def data_collection():
     if request.method == 'POST':
         ngo_id = int(request.form.get('ngo_id'))
         
-        # Check if we are updating an existing metric or adding a new one
         metric_choice = request.form.get('metric_choice')
         if metric_choice == 'new':
             metric_name = request.form.get('new_metric_name')
@@ -332,7 +320,6 @@ def get_ngo_metrics(ngo_id):
     """API endpoint to get existing metrics for a given NGO."""
     ngo = next((n for n in ngo_impact_data if n['id'] == ngo_id), None)
     if ngo:
-        # Return only metrics that have a numeric value
         numeric_metrics = {k: v for k, v in ngo['impact'].items() if isinstance(v, (int, float))}
         return jsonify(list(numeric_metrics.keys()))
     return jsonify([])
@@ -373,5 +360,5 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
