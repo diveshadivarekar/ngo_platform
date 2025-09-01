@@ -2,6 +2,7 @@ from flask import Flask, render_template, abort, request, redirect, url_for, fla
 import io
 import csv
 from datetime import datetime
+import random # Import the random module
 
 app = Flask(__name__)
 # Add a secret key for flashing messages
@@ -158,7 +159,13 @@ def inject_sdg_data():
 @app.route('/')
 def home():
     """Main home page."""
-    return render_template('index.html')
+    # Select 3 random NGOs to feature on the home page
+    if len(ngo_impact_data) > 3:
+        featured_ngos = random.sample(ngo_impact_data, 3)
+    else:
+        featured_ngos = ngo_impact_data
+    return render_template('index.html', featured_ngos=featured_ngos)
+
 
 @app.route('/dashboard')
 def dashboard():

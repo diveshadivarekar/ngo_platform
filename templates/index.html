@@ -1,8 +1,111 @@
-<!-- Inherit the structure from base.html -->
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Home | NGO Amplify{% endblock %}
 
 {% block content %}
-    <!-- This content will replace the content block in base.html -->
-    <h1>{{ header }}</h1>
-    <p>{{ subheader }}</p>
+<section class="hero">
+    <div class="hero-content">
+        <h1>Amplifying Impact, Together.</h1>
+        <p class="subtitle">A unified platform for NGOs to manage data, share resources, and measure their collective impact on the community.</p>
+        <a href="{{ url_for('dashboard') }}" class="hero-button">Explore the Dashboard</a>
+    </div>
+</section>
+
+<section class="features">
+    <div class="section-header">
+        <h2>Our Core Features</h2>
+        <p>Everything you need to grow, collaborate, and succeed.</p>
+    </div>
+    <div class="features-grid">
+        <a href="{{ url_for('dashboard') }}" class="feature-card-link">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10M18 20V4M6 20V16"/></svg>
+                </div>
+                <h3>Visualize Your Impact</h3>
+                <p>Turn raw data into compelling stories with our interactive dashboard. Track metrics, visualize progress, and understand your true impact.</p>
+            </div>
+        </a>
+        <a href="{{ url_for('resource_network') }}" class="feature-card-link">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8M15 3v4a1 1 0 0 0 1 1h4M10 17l.5-1.5M14 17l-1-3-1 3h2Z"/></svg>
+                </div>
+                <h3>Collaborate & Share</h3>
+                <p>Connect with fellow NGOs. Share available resources, request what you need, and build a stronger, more efficient community.</p>
+            </div>
+        </a>
+        <a href="{{ url_for('data_collection') }}" class="feature-card-link">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17V7M7 12H17"/></svg>
+                </div>
+                <h3>Streamline Field Data</h3>
+                <p>Empower your field agents with a simple, mobile-friendly form to submit impact data from anywhere, anytime.</p>
+            </div>
+        </a>
+         <a href="{{ url_for('announcements') }}" class="feature-card-link">
+            <div class="feature-card">
+                 <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </div>
+                <h3>Stay Informed</h3>
+                <p>Keep up with the latest news, events, and urgent needs from across the network with a centralized announcement board.</p>
+            </div>
+        </a>
+    </div>
+</section>
+
+<section class="how-it-works">
+    <div class="section-header">
+        <h2>How It Works</h2>
+        <p>A simple process to get you started.</p>
+    </div>
+    <div class="steps-container">
+        <div class="step">
+            <div class="step-number">1</div>
+            <h3>Submit Your Data</h3>
+            <p>Use our streamlined form to easily submit your field data and impact metrics.</p>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <h3>Visualize & Analyze</h3>
+            <p>See your data come to life on the Impact Dashboard with maps and charts.</p>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <h3>Collaborate & Grow</h3>
+            <p>Connect with other NGOs, share resources, and amplify your collective impact.</p>
+        </div>
+    </div>
+</section>
+
+<section class="impact-spotlight">
+    <div class="section-header">
+        <h2>Impact Spotlight</h2>
+        <p>See the amazing work being done by NGOs in our network.</p>
+    </div>
+    <div class="spotlight-grid">
+        {% for ngo in featured_ngos %}
+        <div class="spotlight-card">
+            <h3>{{ ngo.name }}</h3>
+            <p class="spotlight-area">{{ ngo.area }}</p>
+            <div class="sdg-icons">
+                {% for code in ngo.sdg %}
+                    <img src="https://img.shields.io/badge/SDG-{{ code }}-{{ sdg_colors[code] }}.svg" alt="SDG {{code}}" title="SDG {{code}}: {{ sdg_titles[code] }}">
+                {% endfor %}
+            </div>
+            <a href="{{ url_for('ngo_profile', slug=ngo.slug) }}" class="spotlight-link">Learn More</a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="cta-section">
+    <h2>Ready to Amplify Your Impact?</h2>
+    <p>Join our network of dedicated NGOs and start making a bigger difference today.</p>
+    <a href="{{ url_for('dashboard') }}" class="hero-button">Get Started Now</a>
+</section>
+
 {% endblock %}
+
