@@ -8,7 +8,8 @@
         <h1>Community Resource Sharing Network</h1>
         <p class="subtitle">Connect, share, and request resources to amplify collective impact.</p>
     </div>
-    <a href="/donate"><button id="open-donate-page" class="donate-button">Donate a Resource</button></a>
+    <!-- This button now opens the modal -->
+    <a href="/donate"><button class="donate-button">Donate a Resource</button></a>
 </div>
 
 <!-- Flashed Messages -->
@@ -37,7 +38,7 @@
             <select name="sdg" id="sdg" onchange="this.form.submit()">
                 <option value="all" {% if selected_sdg == 'all' %}selected{% endif %}>All SDGs</option>
                 {% for sdg_num in unique_sdgs %}
-                <option value="{{ sdg_num }}" {% if selected_sdg == sdg_num %}selected{% endif %}>SDG {{ sdg_num }}: {{ sdg_titles[sdg_num|int] }}</option>
+                <option value="{{ sdg_num }}" {% if selected_sdg == sdg_num|string %}selected{% endif %}>SDG {{ sdg_num }}: {{ sdg_titles[sdg_num|int] }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -100,29 +101,29 @@
     </div>
 </div>
 
-
 <!-- Donation Modal -->
 <div id="donate-modal" class="modal">
     <div class="modal-content">
         <span class="close-button">&times;</span>
         <h2>Donate a Resource</h2>
         <p>Offer your support to the network. An administrator will review your donation.</p>
+        <!-- The form now submits to the original donate_resource route -->
         <form action="{{ url_for('donate_resource') }}" method="post" class="modal-form">
             <div class="form-group">
                 <label for="donor_name">Your Name / Organization</label>
                 <input type="text" id="donor_name" name="donor_name" required>
             </div>
             <div class="form-group">
-                <label for="donor_email">Email Address</label>
-                <input type="email" id="donor_email" name="donor_email" required>
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
             </div>
             <div class="form-group">
                 <label for="resource_name">Resource Name</label>
                 <input type="text" id="resource_name" name="resource_name" required>
             </div>
             <div class="form-group">
-                <label for="resource_description">Description & Quantity</label>
-                <textarea id="resource_description" name="resource_description" rows="4" required></textarea>
+                <label for="description">Description & Quantity</label>
+                <textarea id="description" name="description" rows="4" required></textarea>
             </div>
             <button type="submit" class="donate-button">Submit Donation</button>
         </form>
@@ -132,16 +133,21 @@
 <script>
     // Modal JavaScript
     const modal = document.getElementById('donate-modal');
-    const openModalBtn = document.getElementById('open-donate-modal');
+    // Corrected ID to match the button
+    // const openModalBtn = document.getElementById('open-donate-modal');
     const closeModalBtn = document.querySelector('.close-button');
     const offerHelpBtns = document.querySelectorAll('.offer-help-btn');
 
-    openModalBtn.onclick = function() {
-        modal.style.display = 'block';
-    }
+    // if (openModalBtn) {
+    //     openModalBtn.onclick = function() {
+    //         modal.style.display = 'block';
+    //     }
+    // }
     
-    closeModalBtn.onclick = function() {
-        modal.style.display = 'none';
+    if (closeModalBtn) {
+        closeModalBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
     }
 
     // Also open the modal when "Offer Help" is clicked
@@ -156,8 +162,6 @@
             modal.style.display = 'none';
         }
     }
-
 </script>
-
 {% endblock %}
 
